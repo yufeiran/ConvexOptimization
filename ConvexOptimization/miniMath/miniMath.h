@@ -1,5 +1,6 @@
 #pragma once
 #include<iostream>
+#include<initializer_list>
 
 /*
 	miniMath
@@ -14,6 +15,65 @@ namespace mini {
 		矩阵运算 包含
 		求逆、矩阵乘法
 	*/
+
+	struct Vec
+	{
+		int n;
+		double* _data;
+
+		double& operator[](int index) {
+			return _data[index];
+		}
+
+		double operator[](int index)const {
+			return _data[index];
+		}
+
+		Vec(std::initializer_list<double> data)
+		{
+			n = data.size();
+			_data = new double[n];
+			auto nowData = data.begin();
+			for (int i = 0; i < n; i++)
+			{
+				_data[i] = *nowData;
+				nowData++;
+			}
+		}
+
+		Vec(int N) :n(N) {
+			_data = new double[N];
+			for (int i = 0; i < n; i++)
+			{
+				_data[i] = 0;
+			}
+		}
+
+		Vec(const Vec& v) {
+			n = v.n;
+			_data = new double[n];
+			for (int i = 0; i < n; i++)
+			{
+				_data[i] = v._data[i];
+			}
+		}
+
+		Vec& operator=(const Vec& v) {
+			n = v.n;
+			delete[]_data;
+			_data = new double[n];
+			for (int i = 0; i < n; i++)
+			{
+				_data[i] = v._data[i];
+			}
+			return *this;
+		}
+
+		Vec operator-(const Vec& v)const;
+		double value()const;
+	};
+
+
 	struct Mat
 	{
 		int m, n; //m行n列
@@ -32,6 +92,7 @@ namespace mini {
 				_data[i] = m1._data[i];
 			}
 		}
+
 		
 		~Mat() {
 			if(_data!=nullptr)delete[]_data;
@@ -57,9 +118,11 @@ namespace mini {
 		const double d(int M, int N)const { return _data[M * n + N]; }
 		Mat getSubMat(int startM, int startN, int sizeM, int sizeN)const;
 		Mat getSubMat(int I, int J)const; //获得删除第i行第j列而得到的子矩阵
-		Mat operator/(double N);
-		Mat operator*(double N);
-		Mat operator*(const Mat& m1);
+		Mat operator/(double N)const;
+		Mat operator*(double N)const;
+		Mat operator*(const Mat& m1)const;
+		Vec operator*(const Vec& v1)const ;
+		double value()const;
 	};
 
 	Mat transposeMat(const Mat& m1);
@@ -67,5 +130,9 @@ namespace mini {
 	Mat adjMat(const Mat& m1);
 	double detMat(const Mat& m1);
 	std::ostream& operator<<(std::ostream& os, const Mat& m1);
+	std::ostream& operator<<(std::ostream& os, const Vec& v1);
+
+
+	
 }
 

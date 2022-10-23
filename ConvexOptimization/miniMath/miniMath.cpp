@@ -2,7 +2,24 @@
 #include<assert.h>
 using namespace mini;
 
-Mat Mat::operator/(double N)
+
+Vec Vec::operator-(const Vec& v) const
+{
+	Vec ansV(*this);
+	for (int i = 0; i < n; i++)
+	{
+		ansV[i] -= v[i];
+	}
+	return ansV;
+}
+
+double Vec::value()const
+{
+	assert(n == 1);
+	return _data[0];
+}
+
+Mat Mat::operator/(double N)const
 {
 	Mat ansMat(* this);
 	for (int i = 0; i < m*n; i++)
@@ -11,7 +28,7 @@ Mat Mat::operator/(double N)
 	}
 	return ansMat;
 }
-Mat Mat::operator*(double N)
+Mat Mat::operator*(double N)const
 {
 	Mat ansMat(*this);
 	for (int i = 0; i < m * n; i++)
@@ -20,7 +37,7 @@ Mat Mat::operator*(double N)
 	}
 	return ansMat;
 }
-Mat Mat::operator*(const Mat& m1)
+Mat Mat::operator*(const Mat& m1)const
 {
 	/*
 					  + +
@@ -95,6 +112,29 @@ Mat Mat::getSubMat(int I, int J) const//获得删除第i行第j列而得到的子矩阵
 	return subMat;
 }
 
+Vec Mat::operator*(const Vec& v1)const
+{
+	assert(this->n == v1.n);
+
+	Vec ansVec(this->m);
+
+	for (int i = 0; i < m; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			ansVec[i] += d(i, j) * v1[j];
+		}
+	}
+
+	return ansVec;
+}
+
+double Mat::value()const
+{
+	assert(n == 1 && m == 1);
+	return d(0, 0);
+}
+
 Mat mini::inverseMat(const Mat& m1)
 {
 	// A-1=A*/det(A)
@@ -127,6 +167,8 @@ Mat mini::adjMat(const Mat& m1)
 
 double mini::detMat(const Mat& m1)
 {
+	if (m1.m == 1 && m1.n == 1)return m1.d(0, 0);
+
 	assert(m1.isSquare() == true);
 	//从任选一行展开
 	//det(A)=a11*det(A11)+a12*det(A12)+...+a1n*det(A1n)
@@ -162,6 +204,15 @@ std::ostream& mini::operator<<(std::ostream& os, const Mat& m1)
 		os << std::endl;
 	}
 
+	return os;
+}
+
+std::ostream& mini::operator<<(std::ostream& os, const Vec& v1)
+{
+	for (int i = 0; i < v1.n; i++)
+	{
+		os << "| " << v1[i] << " |" << std::endl;
+	}
 	return os;
 }
 
