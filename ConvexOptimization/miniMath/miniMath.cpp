@@ -5,10 +5,22 @@ using namespace mini;
 
 Vec Vec::operator-(const Vec& v) const
 {
+	assert(this->n == v.n);
 	Vec ansV(*this);
 	for (int i = 0; i < n; i++)
 	{
 		ansV[i] -= v[i];
+	}
+	return ansV;
+}
+
+Vec Vec::operator+(const Vec& v)const
+{
+	assert(this->n == v.n);
+	Vec ansV(*this);
+	for (int i = 0; i < n; i++)
+	{
+		ansV[i] += v[i];
 	}
 	return ansV;
 }
@@ -114,6 +126,8 @@ Mat Mat::getSubMat(int I, int J) const//获得删除第i行第j列而得到的子矩阵
 
 Vec Mat::operator*(const Vec& v1)const
 {
+
+
 	assert(this->n == v1.n);
 
 	Vec ansVec(this->m);
@@ -129,11 +143,194 @@ Vec Mat::operator*(const Vec& v1)const
 	return ansVec;
 }
 
+Mat Mat::operator+(const Mat& m1)const
+{
+	assert(this->n == m1.n && this->m == m1.m);
+
+	Mat ansMat(m, n);
+	for (int i = 0; i < m; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			ansMat.d(i, j) = d(i, j) + m1.d(i, j);
+		}
+	}
+	return ansMat;
+}
+
 double Mat::value()const
 {
 	assert(n == 1 && m == 1);
 	return d(0, 0);
 }
+
+Mat mini::operator*(double N, const Mat& m)
+{
+	return m * N;
+}
+
+Mat mini::MakeIdentityMat(int N)
+{
+	Mat IM(N, N);
+	for (int i = 0; i < N; i++)
+	{
+		IM.d(i, i) = 1;
+	}
+	return IM;
+}
+
+
+const int MAX_N = 200;
+double W[MAX_N][MAX_N], W_n[MAX_N][MAX_N], L[MAX_N][MAX_N], U[MAX_N][MAX_N], L_n[MAX_N][MAX_N], U_n[MAX_N][MAX_N];
+double arr[MAX_N][MAX_N];
+void LU_decomposition(int N);
+Mat mini::inverseMatLU_decomposition(const Mat& m1)
+{
+	for (int i = 0; i < m1.m; i++)
+	{
+		for (int j = 0; j < m1.n; j++)
+		{
+			arr[i][j] = m1.d(i, j);
+		}
+	}
+	LU_decomposition(m1.m);
+
+	Mat newM(m1.m, m1.n);
+	for (int i = 0; i < newM.m; i++)
+	{
+		for (int j = 0; j < newM.n; j++)
+		{
+			newM.d(i, j) = W_n[i][j];
+		}
+	}
+	return newM;	
+}
+
+
+//https://blog.csdn.net/weixin_46207279/article/details/120374064
+// 采用LU分解法来对矩阵求逆
+void LU_decomposition(int N)
+{
+
+	int i, j, k, d;
+	float s;
+
+	// 赋初值
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			W[i][j] = (float)arr[i][j];
+			L[i][j] = 0;
+			U[i][j] = 0;
+			L_n[i][j] = 0;
+			U_n[i][j] = 0;
+			W_n[i][j] = 0;
+		}
+	}
+
+	for (i = 0; i < N; i++)  // L对角置1
+	{
+		L[i][i] = 1.0;
+	}
+
+	for (j = 0; j < N; j++)
+	{
+		U[0][j] = W[0][j];
+	}
+
+	for (i = 1; i < N; i++)
+	{
+		L[i][0] = W[i][0] / U[0][0];
+	}
+
+	for (i = 1; i < N; i++)
+	{
+		for (j = i; j < N; j++) // 求U
+		{
+			s = 0;
+			for (k = 0; k < i; k++)
+			{
+				s += L[i][k] * U[k][j];
+			}
+			U[i][j] = W[i][j] - s;
+		}
+
+		for (d = i; d < N; d++) // 求L
+		{
+			s = 0;
+			for (k = 0; k < i; k++)
+			{
+				s += L[d][k] * U[k][i];
+			}
+			L[d][i] = (W[d][i] - s) / U[i][i];
+		}
+	}
+
+	for (j = 0; j < N; j++)  //求L的逆
+	{
+		for (i = j; i < N; i++)
+		{
+			if (i == j)
+				L_n[i][j] = 1 / L[i][j];
+			else if (i < j)
+				L_n[i][j] = 0;
+			else
+			{
+				s = 0.;
+				for (k = j; k < i; k++)
+				{
+					s += L[i][k] * L_n[k][j];
+				}
+				L_n[i][j] = -L_n[j][j] * s;
+			}
+		}
+	}
+
+	for (i = 0; i < N; i++)  //求U的逆
+	{
+		for (j = i; j >= 0; j--)
+		{
+			if (i == j)
+				U_n[j][i] = 1 / U[j][i];
+			else if (j > i)
+				U_n[j][i] = 0;
+			else
+			{
+				s = 0.;
+				for (k = j + 1; k <= i; k++)
+				{
+					s += U[j][k] * U_n[k][i];
+				}
+				U_n[j][i] = -1 / U[j][j] * s;
+			}
+		}
+	}
+
+
+	for (i = 0; i < N; i++)
+	{
+		for (j = 0; j < N; j++)
+		{
+			for (k = 0; k < N; k++)
+			{
+				W_n[i][j] += U_n[i][k] * L_n[k][j];
+			}
+		}
+	}
+
+	/*
+		printf("使用LU分解法求逆的结果为：\n");
+		for (i = 0; i < N; i++)
+		{
+			for (j = 0; j < N; j++)
+			{
+				printf("%7.2f", W_n[i][j]);
+			}
+			printf("\n");
+		}
+	*/
+
+}
+
 
 Mat mini::inverseMat(const Mat& m1)
 {

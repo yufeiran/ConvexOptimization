@@ -152,6 +152,7 @@ void drawGraph(MiniEngine2D& m, const vector<Point>& ansList)
 
 }
 
+
 void myCleanScreen(MiniEngine2D& m)
 {
 	for (int y = 0; y < SCREEN_HEIGHT; y++)
@@ -252,11 +253,21 @@ int main()
 
 
 	bool isGameOver = false;
+	auto tipImg = m.makeFontToMiniImage("Press [r] to reset a start point", 40);
 	while (!isGameOver)
 	{
 		//m.clearScreen();
 		myCleanScreen(m);
 		drawGraph(m,ansList);
+		m.drawImage(600, 650, tipImg);
+
+		if (m.isKeyDown('R') == true)
+		{
+			oldX = generateRandomStartPos(A, b);
+			ansList.clear();
+			ansList = runNTimes(3000, oldX, A, b, dx);
+			cout << "r press!" << endl;
+		}
 
 		m.update();
 	}

@@ -28,6 +28,7 @@ namespace mini {
 		double operator[](int index)const {
 			return _data[index];
 		}
+		Vec() :n(0) {}
 
 		Vec(std::initializer_list<double> data)
 		{
@@ -58,6 +59,12 @@ namespace mini {
 			}
 		}
 
+		~Vec() {
+			if (n != 0) {
+				delete[]_data;
+			}
+		}
+
 		Vec& operator=(const Vec& v) {
 			n = v.n;
 			delete[]_data;
@@ -70,6 +77,7 @@ namespace mini {
 		}
 
 		Vec operator-(const Vec& v)const;
+		Vec operator+(const Vec& v)const;
 		double value()const;
 	};
 
@@ -92,6 +100,7 @@ namespace mini {
 				_data[i] = m1._data[i];
 			}
 		}
+		Mat() :m(0), n(0) {};
 
 		
 		~Mat() {
@@ -122,13 +131,18 @@ namespace mini {
 		Mat operator*(double N)const;
 		Mat operator*(const Mat& m1)const;
 		Vec operator*(const Vec& v1)const ;
+		Mat operator+(const Mat& m1)const;
 		double value()const;
 	};
 
+	Mat MakeIdentityMat(int N);
 	Mat transposeMat(const Mat& m1);
 	Mat inverseMat(const Mat& m1);
+	Mat inverseMatLU_decomposition(const Mat& m1);
 	Mat adjMat(const Mat& m1);
 	double detMat(const Mat& m1);
+	
+	Mat operator*(double N, const Mat& m);
 	std::ostream& operator<<(std::ostream& os, const Mat& m1);
 	std::ostream& operator<<(std::ostream& os, const Vec& v1);
 

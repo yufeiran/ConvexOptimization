@@ -2,6 +2,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include"stb_image.h"
 
+//引擎内部使用
+extern _InputEventHookConfig mouseEventHookConfig;
+extern _InputEventHookConfig keyboardEventHookConfig;
+extern unsigned char keyStatus[0xFF];
+extern std::pair<int, int> mousePosition;
+
 bool MiniImage::load(const char* filepath)
 {
 	int channel;
@@ -64,6 +70,26 @@ void MiniEngine2D::setTitle(const char* title)
 }
 
 
+bool MiniEngine2D::isKeyDown(int keyCode)
+{
+	bool result = keyStatus[keyCode] & 0x10;
+	keyStatus[keyCode] &= 0x0F;
+	return result;
+}
+
+bool MiniEngine2D::isKeyUp(int keyCode)
+{
+	bool result = keyStatus[keyCode] & 0x01;
+	keyStatus[keyCode] &= 0xF0;
+	//return GetAsyncKeyState(keyCode) & 0x0001;
+	return result;
+}
+
+std::pair<int, int> MiniEngine2D::getMousePosition()
+{
+	return mousePosition;
+}
+
 int __cdecl MiniEngine2D::log(char const* const _Format, ...)
 {
 	va_list _ArgList;
@@ -85,6 +111,11 @@ int __cdecl MiniEngine2D::log(wchar_t const* const _Format, ...)
 int __cdecl MiniEngine2D::log(int obj)
 {
 	return log("%d", obj);
+}
+
+int __cdecl MiniEngine2D::log(unsigned long obj)
+{
+	return log("%u", obj);
 }
 
 int __cdecl MiniEngine2D::log(float obj)
@@ -168,7 +199,35 @@ void MiniEngine2D::setFont(const std::string& fontName, int size)
 }
 
 
-MiniImage MiniEngine2D::makeFontToMiniImage(std::string str, int size)
+MiniImage MiniEngine2D::makeFontToMiniImage(std::string str, int size) 
 {
 	return ::makeFontToMiniImage(str, size);
+}
+
+/// <summary>
+/// 给MiniEngine添加一个用于处理鼠标事件的函数，在发生鼠标事件时，
+/// MiniEngine内部会先处理保留事件，处理完成之后会启动一个线程调用pfunc
+/// 线程默认等待时间1000 ms
+/// </summary>
+/// <param name="pfunc">处理函数</param>
+/// <param name="timeout">等待时间，单位毫秒，-1则无限等待，默认值1000ms</param>
+void MiniEngine2D::addEventHook(PFuncMouseEvent pfunc, int timeout)
+{
+	//可能会有跨线程写的风险
+	mouseEventHookConfig.pFuncMouseEvent = pfunc;
+	mouseEventHookConfig.timeout = timeout;
+}
+
+/// <summary>
+/// 给MiniEngine添加一个用于处理键盘事件的函数，在发生键盘事件时，
+/// MiniEngine内部会先处理保留事件，处理完成之后会启动一个线程调用pfunc
+/// 线程默认等待时间1000 ms
+/// </summary>
+/// <param name="pfunc">处理函数</param>
+/// <param name="timeout">等待时间，单位毫秒，-1则无限等待，默认值1000ms</param>
+void MiniEngine2D::addEventHook(PFuncKeyboardEvent pfunc, int timeout)
+{
+	//可能会有跨线程写的风险
+	keyboardEventHookConfig.pFuncKeyboardEvent = pfunc;
+	keyboardEventHookConfig.timeout = timeout;
 }
